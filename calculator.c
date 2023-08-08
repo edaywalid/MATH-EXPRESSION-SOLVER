@@ -5,6 +5,7 @@
 #include <math.h>
 #define emptyChar ' '
 #define emptyDouble -1
+
 typedef struct Node *list;
 typedef struct Node
 {
@@ -23,6 +24,15 @@ bool CharisOperator(char Character)
     return Character == '^' ||Character == '+' || Character == '-' || Character == '*' || Character == '/';
 }
 
+bool charIsParenthisis(char Char){
+    return Char=='(' || Char==')';
+}
+
+bool CharDetector(char Char){
+    return CharisOperator(Char) || charIsParenthisis(Char);
+}
+
+
 bool isOperator(list node)
 {
     return isChar(node) && CharisOperator(node->Character);
@@ -30,7 +40,7 @@ bool isOperator(list node)
 
 bool isParenthesis(list node)
 {
-    return isChar(node) && !isOperator(node);
+    return charIsParenthisis(node->Character);
 }
 
 list CreateCharNode(char Character)
@@ -116,12 +126,15 @@ list ListPop(list *head)
     *head = (*head)->next;
     return temp;
 }
+
+
 int prio(char X)
 {
     return X == '^' ? 3 : X == '*' || X == '/' ? 2
                       : X == '+' || X == '-'   ? 1
                                                : -1;
 }
+
 
 list Top(list head)
 {
@@ -165,27 +178,28 @@ list infixToPosfix(char *expression)
         }
         else if (expression[index] == ')')
         {
-            while (!isEmpty(OperatorStack) &&
+            while (
                    getChar(Top(OperatorStack)) != '(')
             {
                 push(&ExpressionStack, CreateNode(1, emptyDouble, CharPop(&OperatorStack)));
             }
             pop(&OperatorStack);
+            
         }
         else
         {
             double float_value = 0.0;
-            float power = 10;
-            while (expression[index] != '\0' && !CharisOperator(expression[index]) && expression[index] != '.')
+            double power = 10;
+            while (expression[index] != '\0' && !CharDetector(expression[index]) && expression[index] != '.')
             {
                 float_value = float_value * power + (expression[index] - '0');
                 index++;
             }
-            while (expression[index] != '\0' && !CharisOperator(expression[index]) && expression[index] == '.')
+            while (expression[index] != '\0' && !CharDetector(expression[index]) && expression[index] == '.')
             {
                 index++;
             }
-            while (expression[index] != '\0' && !CharisOperator(expression[index]))
+            while (expression[index] != '\0' && !CharDetector(expression[index]))
             {
                 float_value = float_value + (expression[index] - '0') / power;
                 power *= 10;
@@ -252,11 +266,28 @@ double getResult(double op1, double op2, char Operation)
     case '/':
         return division(op2, op1);
         break;
-    case '^' :
+    case '^' : 
         return power(op2 , op1);
         break;
     }
         
+}
+
+bool isInt(double x){
+    bool test ;
+    int* temp = malloc(sizeof(int));
+    *temp = (int) x;
+    test = *temp == x ? true : false;
+    free(temp);
+    return test;
+}
+
+void printResult(double x){
+    if(isInt(x)){
+        printf("%d\n" , (int)x);
+        return ;
+    }
+    printf("%lf\n" , x);
 }
 
 double solve(list head)
@@ -286,8 +317,15 @@ int main()
         printf("entrer une expression :");
         char* expression = malloc(100);
         scanf("%s" , expression);
-        printf("%lf\n" , solve(infixToPosfix(expression)));
+        double result = solve(infixToPosfix(expression));
+        printResult(result);
     }
+
+
+    
+
+    
     
     return 0;
 }
+
